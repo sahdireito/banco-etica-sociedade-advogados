@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banco de Questões OAB — Sociedade de Advogados</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #f4f1eb;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  color: #1a1a1a;
+}
+
+.page-header { max-width: 780px; margin: 0 auto 2rem; }
+
+.tema-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  background: #3C3489;
+  color: #fff;
+  border-radius: 5px;
+  padding: 4px 12px;
+  margin-bottom: 0.75rem;
+}
+
+.page-title { font-size: 26px; font-weight: 800; color: #1a1a1a; line-height: 1.2; margin-bottom: 0.4rem; }
+.page-sub { font-size: 14px; color: #888; }
+
+.score-bar {
+  max-width: 780px;
+  margin: 0 auto 1.5rem;
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  flex-wrap: wrap;
+}
+
+.score-item { text-align: center; }
+.score-num { font-size: 22px; font-weight: 800; color: #1a1a1a; line-height: 1; }
+.score-label { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+.score-num.acertos { color: #3B6D11; }
+.score-num.erros { color: #A32D2D; }
+
+.progress-wrap { flex: 1; min-width: 120px; }
+.progress-track { background: #ede9e0; border-radius: 99px; height: 8px; overflow: hidden; }
+.progress-fill { background: #534AB7; height: 8px; border-radius: 99px; transition: width 0.4s ease; width: 0%; }
+.progress-label { font-size: 12px; color: #aaa; margin-top: 4px; }
+
+.nav-wrap { max-width: 780px; margin: 0 auto 1.5rem; display: flex; flex-wrap: wrap; gap: 6px; }
+
+.nav-btn {
+  width: 38px; height: 38px; border-radius: 8px; border: 1.5px solid #ddd;
+  background: #fff; font-size: 13px; font-weight: 600; color: #888;
+  cursor: pointer; transition: all 0.15s; font-family: inherit;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav-btn:hover { border-color: #AFA9EC; color: #534AB7; }
+.nav-btn.active { border-color: #534AB7; background: #534AB7; color: #fff; }
+.nav-btn.correto { border-color: #639922; background: #EAF3DE; color: #3B6D11; }
+.nav-btn.errado { border-color: #E24B4A; background: #FCEBEB; color: #A32D2D; }
+
+.container { max-width: 780px; margin: 0 auto; }
+
+.q-card {
+  background: #fff; border-radius: 16px; padding: 2rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07); display: none; animation: fadeIn 0.2s ease;
+}
+.q-card.visible { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.q-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+.q-num { font-size: 12px; font-weight: 700; background: #EEEDFE; color: #3C3489; border-radius: 5px; padding: 4px 10px; }
+.q-exame { font-size: 12px; color: #aaa; }
+.q-titulo { font-size: 17px; font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; line-height: 1.35; }
+
+.enunciado {
+  font-size: 14px; line-height: 1.8; color: #444; border-left: 3px solid #534AB7;
+  padding-left: 1rem; margin-bottom: 1.25rem; background: #faf9f7;
+  border-radius: 0 8px 8px 0; padding: 0.875rem 1rem;
+}
+
+.comando { font-size: 14px; font-weight: 700; color: #534AB7; margin-bottom: 1rem; }
+
+.alternativas { display: flex; flex-direction: column; gap: 9px; margin-bottom: 1.25rem; }
+
+.alt-btn {
+  display: flex; align-items: flex-start; gap: 13px; background: #f8f7f4;
+  border: 1.5px solid #e5e2d9; border-radius: 10px; padding: 13px 15px;
+  cursor: pointer; text-align: left; transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  width: 100%; font-family: inherit;
+}
+.alt-btn:hover:not(:disabled) { border-color: #AFA9EC; background: #EEEDFE; transform: translateX(2px); }
+.alt-btn:disabled { cursor: default; }
+
+.alt-letter {
+  font-size: 12px; font-weight: 700; color: #aaa; width: 22px; height: 22px; min-width: 22px;
+  border-radius: 50%; border: 1.5px solid #ccc; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0; margin-top: 1px; transition: all 0.15s;
+}
+.alt-text { font-size: 14px; line-height: 1.65; color: #333; }
+
+.alt-btn.correct { background: #EAF3DE; border-color: #639922; }
+.alt-btn.correct .alt-letter { background: #639922; border-color: #639922; color: #fff; }
+.alt-btn.correct .alt-text { color: #27500A; font-weight: 600; }
+
+.alt-btn.wrong { background: #FCEBEB; border-color: #E24B4A; }
+.alt-btn.wrong .alt-letter { background: #E24B4A; border-color: #E24B4A; color: #fff; }
+.alt-btn.wrong .alt-text { color: #791F1F; }
+
+.feedback { display: none; border-radius: 10px; padding: 1rem 1.25rem; font-size: 14px; line-height: 1.75; margin-bottom: 1rem; }
+.feedback.show { display: block; }
+.feedback.acerto { background: #EAF3DE; border: 1px solid #97C459; color: #27500A; }
+.feedback.erro { background: #FCEBEB; border: 1px solid #F09595; color: #791F1F; }
+
+.fundamento-box {
+  display: none; border-radius: 10px; padding: 1rem 1.25rem; font-size: 13px; line-height: 1.8;
+  color: #555; border-left: 3px solid #534AB7; background: #f4f2fd; margin-bottom: 1rem;
+}
+.fundamento-box.show { display: block; }
+.caqui-box {
+  display: none; border-radius: 10px; padding: 1rem 1.25rem; font-size: 13px; line-height: 1.8;
+  color: #5a3e00; border-left: 3px solid #e8a000; background: #fff8e6; margin-bottom: 1rem;
+}
+.caqui-box.show { display: block; }
+.caqui-box h4 { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #b87300; margin-bottom: 0.6rem; }
+.fundamento-box h4 { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #534AB7; margin-bottom: 0.6rem; }
+
+.card-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 0.5rem; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btn {
+  background: transparent; border: 1.5px solid #ddd; border-radius: 8px; padding: 7px 16px;
+  font-size: 13px; font-family: inherit; color: #666; cursor: pointer; transition: all 0.15s; display: none;
+}
+.btn:hover { border-color: #534AB7; color: #534AB7; }
+.btn.show { display: inline-flex; align-items: center; gap: 5px; }
+.btn.purple { border-color: #AFA9EC; color: #534AB7; }
+.btn.caqui { border-color: #e8a000; color: #b87300; }
+.btn.caqui:hover { background: #fff8e6; }
+.btn.purple:hover { background: #EEEDFE; }
+
+.status-text { font-size: 12px; color: #aaa; font-style: italic; }
+
+.pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 1.5rem; gap: 10px; }
+.pg-btn {
+  background: #fff; border: 1.5px solid #ddd; border-radius: 9px; padding: 9px 20px;
+  font-size: 14px; font-weight: 600; font-family: inherit; color: #555; cursor: pointer; transition: all 0.15s;
+}
+.pg-btn:hover { border-color: #534AB7; color: #534AB7; }
+.pg-btn:disabled { opacity: 0.3; cursor: default; }
+.pg-btn.primary { background: #534AB7; border-color: #534AB7; color: #fff; }
+.pg-btn.primary:hover { background: #3C3489; }
+.pg-info { font-size: 13px; color: #aaa; }
+
+@media (max-width: 600px) {
+  body { padding: 1rem 0.75rem; }
+  .q-card { padding: 1.25rem; }
+  .page-title { font-size: 20px; }
+  .score-bar { gap: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <span class="tema-badge">📌 Banco de Questões OAB</span>
+  <h1 class="page-title">Ética — Sociedade de Advogados</h1>
+  <p class="page-sub">26 questões — Arts. 15 a 17-B, EOAB · Arts. 37 a 41, RGEAOAB · Questões reais e inéditas</p>
+</div>
+
+<div class="score-bar">
+  <div class="score-item"><div class="score-num" id="sc-total">0</div><div class="score-label">Respondidas</div></div>
+  <div class="score-item"><div class="score-num acertos" id="sc-acertos">0</div><div class="score-label">Acertos</div></div>
+  <div class="score-item"><div class="score-num erros" id="sc-erros">0</div><div class="score-label">Erros</div></div>
+  <div class="progress-wrap">
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-label" id="progress-label">0 de 26 respondidas</div>
+  </div>
+</div>
+
+<div class="nav-wrap" id="nav-wrap"></div>
+
+<div class="container" id="questions-container"></div>
+
+<div class="container">
+  <div class="pagination">
+    <button class="pg-btn" id="btn-prev" onclick="navPage(-1)">← Anterior</button>
+    <span class="pg-info" id="pg-info">1 de 26</span>
+    <button class="pg-btn primary" id="btn-next" onclick="navPage(1)">Próxima →</button>
+  </div>
+</div>
+
+<script>
+const QUESTOES = [
+{
+  num: 1,
+  exame: "",
+  titulo: "Natureza Jurídica da Sociedade de Advogados",
+  enunciado: "Marcos e Bruna, ambos advogados regularmente inscritos na OAB, pretendem reunir-se para o exercício conjunto da advocacia, e consultam um colega sobre a forma societária cabível.",
+  comando: "Com base no Estatuto da Advocacia, assinale a afirmativa correta.",
+  gabarito: "B",
+  alternativas: {
+    A: "Os advogados podem constituir sociedade empresária de prestação de serviços de advocacia, desde que registrada na Junta Comercial do respectivo Estado.",
+    B: "Os advogados podem reunir-se em sociedade simples de prestação de serviços de advocacia ou constituir sociedade unipessoal de advocacia, na forma disciplinada no Estatuto e no regulamento geral.",
+    C: "A reunião de advogados para o exercício da profissão somente é admitida sob a forma de sociedade anônima, com ações nominativas.",
+    D: "É vedado a qualquer advogado constituir sociedade unipessoal de advocacia, sendo essa modalidade exclusiva de outras categorias profissionais."
+  },
+  feedbacks: {
+    A: "Incorreta. A sociedade de advogados é sociedade SIMPLES, não empresária — não se registra na Junta Comercial, mas no Conselho Seccional da OAB.",
+    B: "Correta! O art. 15, caput, do EOAB (redação da Lei 13.247/2016) permite aos advogados reunirem-se em sociedade simples de prestação de serviços de advocacia ou constituir sociedade unipessoal de advocacia.",
+    C: "Incorreta. A forma de sociedade anônima é vedada — o art. 16 do EOAB proíbe qualquer forma ou característica de sociedade empresária.",
+    D: "Incorreta. A sociedade unipessoal de advocacia foi criada exatamente para os advogados, pela Lei 13.247/2016."
+  },
+  fundamento: "Art. 15, caput, EOAB (Lei 8.906/94, com redação da Lei 13.247/2016).",
+  caqui: "Desde 2016, o advogado tem duas portas de entrada para atuar em conjunto (ou sozinho, formalmente): a sociedade simples de advogados (dois ou mais sócios) ou a sociedade unipessoal de advocacia (um único titular). Nenhuma das duas pode ter forma empresária — isso é vedado expressamente pelo art. 16."
+},
+{
+  num: 2,
+  exame: "",
+  titulo: "Aquisição de Personalidade Jurídica",
+  enunciado: "Após elaborar o ato constitutivo de sua sociedade de advogados, Camila e seus sócios buscam orientação sobre onde devem providenciar o registro para que a sociedade adquira personalidade jurídica.",
+  comando: "Assinale a alternativa correta.",
+  gabarito: "C",
+  alternativas: {
+    A: "O registro deve ser realizado na Junta Comercial do Estado onde a sociedade tiver sede, tal como ocorre com as sociedades empresárias em geral.",
+    B: "O registro deve ser realizado no Cartório de Registro Civil de Pessoas Jurídicas, independentemente de qualquer outro órgão.",
+    C: "A sociedade de advogados e a sociedade unipessoal de advocacia adquirem personalidade jurídica com o registro aprovado dos seus atos constitutivos no Conselho Seccional da OAB em cuja base territorial tiver sede.",
+    D: "O registro deve ser feito simultaneamente no Conselho Federal da OAB e em todos os Conselhos Seccionais em que a sociedade pretenda atuar."
+  },
+  feedbacks: {
+    A: "Incorreta. Sociedade de advogados não é sociedade empresária — não se registra em Junta Comercial.",
+    B: "Incorreta. O registro que confere personalidade jurídica à sociedade de advogados é o do Conselho Seccional da OAB, não o Cartório de Registro Civil de Pessoas Jurídicas.",
+    C: "Correta! O art. 15, §1º, EOAB é expresso: a personalidade jurídica surge com o registro aprovado dos atos constitutivos no Conselho Seccional da OAB da base territorial da sede.",
+    D: "Incorreta. O registro inicial é no Conselho Seccional da sede; a atuação em outras bases territoriais (filiais) segue regra própria de averbação e inscrição suplementar, não exige registro simultâneo em todos os Conselhos."
+  },
+  fundamento: "Art. 15, §1º, EOAB (redação da Lei 13.247/2016).",
+  caqui: "Só existe um lugar que dá vida jurídica à sociedade de advogados: o Conselho Seccional da OAB onde ela tem sede. Nada de Junta Comercial, nada de Cartório de Registro Civil isoladamente — é a OAB quem aprova o ato constitutivo e, com isso, a sociedade 'nasce' oficialmente."
+},
+{
+  num: 3,
+  exame: "",
+  titulo: "Aplicação do Código de Ética e Disciplina",
+  enunciado: "Uma sociedade de advogados é questionada sobre se as regras do Código de Ética e Disciplina da OAB, pensadas primariamente para o advogado individualmente considerado, também alcançam a atuação da pessoa jurídica.",
+  comando: "Assinale a alternativa correta.",
+  gabarito: "A",
+  alternativas: {
+    A: "Aplica-se à sociedade de advogados e à sociedade unipessoal de advocacia o Código de Ética e Disciplina, no que couber.",
+    B: "O Código de Ética e Disciplina não se aplica a sociedades de advogados, por ser dirigido exclusivamente à pessoa física do advogado.",
+    C: "O Código de Ética e Disciplina aplica-se integralmente às sociedades de advogados, mas não à sociedade unipessoal de advocacia.",
+    D: "A aplicação do Código de Ética e Disciplina às sociedades de advogados depende de previsão expressa no ato constitutivo da sociedade."
+  },
+  feedbacks: {
+    A: "Correta! O art. 15, §2º, EOAB determina a aplicação do Código de Ética e Disciplina à sociedade de advogados e à sociedade unipessoal de advocacia, no que couber.",
+    B: "Incorreta. O Código de Ética se estende às sociedades, ainda que com as devidas adaptações ('no que couber').",
+    C: "Incorreta. A lei não faz essa distinção — o Código se aplica também à sociedade unipessoal.",
+    D: "Incorreta. A aplicação decorre diretamente da lei, independentemente de previsão no ato constitutivo."
+  },
+  fundamento: "Art. 15, §2º, EOAB.",
+  caqui: "Pense na sociedade de advogados como uma extensão do próprio advogado para fins éticos: o Código de Ética não perde força só porque o advogado passou a atuar através de uma pessoa jurídica. A expressão 'no que couber' apenas reconhece que algumas regras (pensadas para pessoa física) precisam de adaptação ao aplicar-se à sociedade."
+},
+{
+  num: 4,
+  exame: "",
+  titulo: "Outorga de Procurações",
+  enunciado: "Rodrigo é sócio de uma sociedade de advogados e foi procurado por um cliente para patrocinar uma causa em nome do escritório.",
+  comando: "Sobre a outorga da procuração nesse caso, assinale a alternativa correta.",
+  gabarito: "D",
+  alternativas: {
+    A: "A procuração deve ser outorgada exclusivamente à sociedade de advogados, sem menção a qualquer advogado individualmente.",
+    B: "A procuração pode ser outorgada à sociedade de advogados como um todo, dispensando-se a indicação de advogados específicos.",
+    C: "A procuração deve ser outorgada a todos os sócios da sociedade, ainda que apenas um deles atue efetivamente na causa.",
+    D: "As procurações devem ser outorgadas individualmente aos advogados, devendo indicar a sociedade de que façam parte."
+  },
+  feedbacks: {
+    A: "Incorreta. A procuração não pode ser outorgada apenas à sociedade — deve necessariamente indicar o(s) advogado(s) individualmente.",
+    B: "Incorreta. Não se dispensa a indicação do advogado individual — é justamente o oposto do que a lei exige.",
+    C: "Incorreta. Não há exigência de outorga a todos os sócios; a procuração é dada aos advogados que efetivamente atuarão, indicando a sociedade.",
+    D: "Correta! O art. 15, §3º, EOAB exige que as procurações sejam outorgadas individualmente aos advogados, indicando a sociedade de que façam parte."
+  },
+  fundamento: "Art. 15, §3º, EOAB.",
+  caqui: "A sociedade dá o 'sobrenome profissional', mas quem recebe os poderes do cliente é sempre o advogado, pessoa física, individualmente. A procuração terá o nome do advogado E o nome da sociedade — nunca só um ou só outro."
+},
+{
+  num: 5,
+  exame: "",
+  titulo: "Vedação de Integrar Mais de Uma Sociedade",
+  enunciado: "Fábio já é sócio de uma sociedade de advogados e pretende, simultaneamente, constituir uma sociedade unipessoal de advocacia para atender outros clientes.",
+  comando: "Considerando o EOAB, assinale a afirmativa correta.",
+  gabarito: "C",
+  alternativas: {
+    A: "É permitido a Fábio integrar quantas sociedades de advogados desejar, desde que em Conselhos Seccionais diferentes.",
+    B: "É permitido a Fábio constituir a sociedade unipessoal, desde que se desligue e volte a integrar a sociedade de advogados após 1 ano.",
+    C: "Nenhum advogado pode integrar mais de uma sociedade de advogados, constituir mais de uma sociedade unipessoal de advocacia, ou integrar, simultaneamente, uma sociedade de advogados e uma sociedade unipessoal de advocacia.",
+    D: "A vedação de acumular sociedades só se aplica caso as duas sociedades tenham sede na mesma cidade."
+  },
+  feedbacks: {
+    A: "Incorreta. A vedação é ampla e não comporta exceção por Conselhos Seccionais diferentes.",
+    B: "Incorreta. Não existe essa solução de 'desligar e voltar depois de 1 ano' prevista em lei.",
+    C: "Correta! O art. 15, §4º, EOAB veda expressamente as três hipóteses: integrar mais de uma sociedade de advogados, constituir mais de uma sociedade unipessoal, ou integrar simultaneamente uma sociedade de advogados e uma unipessoal.",
+    D: "Incorreta. A vedação não depende da localização das sedes — é regra geral, sem essa condição."
+  },
+  fundamento: "Art. 15, §4º, EOAB.",
+  caqui: "Regra simples de decorar: um advogado, uma 'casa profissional' só. Ele não pode ter um pé em duas sociedades de advogados, nem abrir duas unipessoais, nem misturar sociedade de advogados com unipessoal ao mesmo tempo. É tudo ou nada — escolhe uma estrutura e fica nela."
+},
+{
+  num: 6,
+  exame: "",
+  titulo: "Filiais e Inscrição Suplementar",
+  enunciado: "Uma sociedade de advogados com sede em São Paulo pretende abrir uma filial em Minas Gerais.",
+  comando: "Sobre esse procedimento, assinale a alternativa correta.",
+  gabarito: "B",
+  alternativas: {
+    A: "O ato de constituição da filial deve ser registrado apenas no Conselho Seccional de São Paulo, sendo dispensada qualquer formalidade no Conselho Seccional de Minas Gerais.",
+    B: "O ato de constituição de filial deve ser averbado no registro da sociedade e arquivado no Conselho Seccional onde se instalar, ficando os sócios obrigados à inscrição suplementar.",
+    C: "A abertura de filial em outro Estado dispensa a inscrição suplementar dos sócios, bastando a inscrição principal já existente.",
+    D: "É vedada a abertura de filiais de sociedades de advogados fora da base territorial do Conselho Seccional de origem."
+  },
+  feedbacks: {
+    A: "Incorreta. É necessário o arquivamento também no Conselho Seccional onde a filial se instalar — não basta o registro na origem.",
+    B: "Correta! O art. 15, §5º, EOAB exige a averbação no registro da sociedade e o arquivamento no Conselho Seccional de destino, com inscrição suplementar obrigatória dos sócios (inclusive titular de sociedade unipessoal).",
+    C: "Incorreta. A inscrição suplementar é exigida justamente para quem passa a atuar habitualmente em base territorial diversa da principal.",
+    D: "Incorreta. A abertura de filiais é expressamente prevista e regulada pelo próprio art. 15, §5º — não é vedada."
+  },
+  fundamento: "Art. 15, §5º, EOAB.",
+  caqui: "Abrir filial não é só avisar o escritório de origem — precisa also 'bater ponto' no Conselho Seccional de destino, com inscrição suplementar dos sócios que vão atuar lá. É o mesmo raciocínio da inscrição suplementar individual do advogado, só que aplicado à sociedade."
+},
+{
+  num: 7,
+  exame: "",
+  titulo: "Sócios com Interesses Opostos",
+  enunciado: "Dois sócios de uma mesma sociedade de advogados pretendem atuar, cada um, representando uma das partes de um processo judicial movido uma contra a outra.",
+  comando: "Considerando o EOAB, assinale a afirmativa correta.",
+  gabarito: "A",
+  alternativas: {
+    A: "Os advogados sócios de uma mesma sociedade profissional não podem representar em juízo clientes de interesses opostos.",
+    B: "É permitida essa atuação, desde que os sócios firmem termo de independência técnica recíproca perante o cliente.",
+    C: "É permitida essa atuação, desde que os honorários de ambos os processos sejam recolhidos separadamente pela sociedade.",
+    D: "A vedação só se aplica se os sócios atuarem no mesmo processo judicial, não havendo problema em processos distintos entre os mesmos litigantes."
+  },
+  feedbacks: {
+    A: "Correta! O art. 15, §6º, EOAB veda que advogados sócios da mesma sociedade profissional representem em juízo clientes de interesses opostos.",
+    B: "Incorreta. Não existe essa solução de 'termo de independência técnica' que afaste a vedação legal.",
+    C: "Incorreta. A separação de honorários não elimina o conflito de interesses vedado pela lei.",
+    D: "Incorreta. A vedação é ampla e não se restringe ao mesmo processo — abrange clientes de interesses opostos de forma geral."
+  },
+  fundamento: "Art. 15, §6º, EOAB.",
+  caqui: "Pense na sociedade de advogados como um só 'corpo profissional': se um sócio representa A e outro representa B, e A está processando B, a sociedade estaria, na prática, jogando dos dois lados do tabuleiro ao mesmo tempo. Por isso a lei veda essa situação, independentemente de acordos internos entre os sócios."
+},
+{
+  num: 8,
+  exame: "",
+  titulo: "Sociedade Unipessoal por Concentração de Quotas",
+  enunciado: "Em uma sociedade de advogados com três sócios, dois deles se retiram ao longo do tempo, restando um único sócio titular de todas as quotas.",
+  comando: "Considerando o EOAB, assinale a alternativa correta.",
+  gabarito: "D",
+  alternativas: {
+    A: "A sociedade deve ser obrigatoriamente dissolvida, não sendo possível a continuidade das atividades com um único sócio remanescente.",
+    B: "A sociedade só pode continuar existindo se um novo sócio for admitido no prazo de 180 dias.",
+    C: "A concentração das quotas em um único advogado é vedada, devendo ele transferir parte de sua participação a terceiro estranho à sociedade.",
+    D: "A sociedade unipessoal de advocacia pode resultar da concentração por um advogado das quotas de uma sociedade de advogados, independentemente das razões que motivaram tal concentração."
+  },
+  feedbacks: {
+    A: "Incorreta. A concentração das quotas em um único sócio não implica dissolução obrigatória — pode dar origem a uma sociedade unipessoal de advocacia.",
+    B: "Incorreta. Não há esse prazo de 180 dias para recompor pluralidade de sócios na sociedade de advogados — essa lógica de reconstituição de pluralidade é típica de outros tipos societários (como a sociedade limitada comum), não da sociedade de advogados.",
+    C: "Incorreta. A concentração das quotas é expressamente admitida, e o advogado não é obrigado a transferir participação a terceiro.",
+    D: "Correta! O art. 15, §7º, EOAB prevê exatamente essa hipótese: a sociedade unipessoal de advocacia pode resultar da concentração das quotas por um único advogado, independentemente do motivo."
+  },
+  fundamento: "Art. 15, §7º, EOAB.",
+  caqui: "Se a sociedade 'encolhe' até sobrar um só advogado com todas as quotas, a lei não trata isso como um problema a ser resolvido às pressas — ela simplesmente reconhece que a sociedade se tornou uma sociedade unipessoal de advocacia. É uma transformação natural, sem prazo para 'consertar' a pluralidade."
+},
+{
+  num: 9,
+  exame: "",
+  titulo: "Recolhimento de Tributos pela Sociedade",
+  enunciado: "Uma sociedade de advogados atua em parceria com outros escritórios no atendimento de determinados clientes, repassando parte da receita recebida a esses parceiros.",
+  comando: "Sobre o recolhimento de tributos nesse cenário, assinale a alternativa correta.",
+  gabarito: "B",
+  alternativas: {
+    A: "A sociedade deve recolher tributos sobre a totalidade da receita recebida do cliente, ainda que parte seja repassada a outros advogados ou sociedades parceiras.",
+    B: "A sociedade de advogados deve recolher seus tributos sobre a parcela da receita que efetivamente lhe couber, com exclusão da receita transferida a outros advogados ou a sociedades que atuem em parceria para o atendimento do cliente.",
+    C: "A sociedade está isenta de qualquer tributação sobre a receita proveniente de atendimento em parceria com outros escritórios.",
+    D: "A exclusão da receita repassada a parceiros da base tributável depende de autorização prévia do Conselho Seccional da OAB."
+  },
+  feedbacks: {
+    A: "Incorreta. A lei expressamente exclui da base tributável a receita repassada a outros advogados/sociedades parceiras.",
+    B: "Correta! O art. 15, §9º, EOAB determina que a sociedade recolha tributos apenas sobre a parcela da receita que efetivamente lhe couber, excluindo a parte repassada a parceiros no atendimento do cliente.",
+    C: "Incorreta. Não há isenção total — há apenas a exclusão da parcela repassada, tributando-se normalmente o que efetivamente coube à sociedade.",
+    D: "Incorreta. Não há exigência de autorização prévia do Conselho Seccional para essa exclusão tributária — a regra decorre diretamente da lei."
+  },
+  fundamento: "Art. 15, §9º, EOAB.",
+  caqui: "A lógica é evitar que a sociedade pague imposto sobre dinheiro que nem ficou com ela. Se parte da receita foi repassada a um parceiro que também atuou no caso, essa fatia sai da conta — a sociedade só recolhe tributo sobre o que efetivamente embolsou."
+},
+{
+  num: 10,
+  exame: "",
+  titulo: "Compartilhamento de Espaço Físico",
+  enunciado: "Uma sociedade de advogados pretende dividir o mesmo andar de um edifício comercial com outro escritório de advocacia e com uma empresa de consultoria, mantendo salas de reunião compartilhadas.",
+  comando: "Considerando o EOAB, assinale a alternativa correta.",
+  gabarito: "A",
+  alternativas: {
+    A: "A sociedade de advogados pode ter como sede, filial ou local de trabalho espaço de uso individual ou compartilhado com outros escritórios de advocacia ou empresas, desde que respeitadas as hipóteses de sigilo previstas em lei e no Código de Ética e Disciplina.",
+    B: "É absolutamente vedado o compartilhamento de qualquer espaço físico entre sociedades de advogados e outras empresas, ainda que resguardado o sigilo.",
+    C: "O compartilhamento de espaço só é permitido entre sociedades de advogados entre si, sendo vedado com empresas de outros ramos de atividade.",
+    D: "O compartilhamento de espaço depende de aprovação prévia, caso a caso, do Tribunal de Ética e Disciplina do Conselho Seccional."
+  },
+  feedbacks: {
+    A: "Correta! O art. 15, §12, EOAB permite expressamente o uso individual ou compartilhado do espaço com outros escritórios de advocacia ou empresas, desde que respeitadas as hipóteses de sigilo.",
+    B: "Incorreta. O compartilhamento é permitido, não vedado, desde que o sigilo seja preservado.",
+    C: "Incorreta. A lei não restringe o compartilhamento apenas a outras sociedades de advogados — permite também com empresas em geral.",
+    D: "Incorreta. Não há exigência de aprovação prévia, caso a caso, do Tribunal de Ética para o compartilhamento de espaço."
+  },
+  fundamento: "Art. 15, §12, EOAB.",
+  caqui: "A lei acompanhou a realidade dos coworkings e escritórios compartilhados: pode dividir sala, andar, recepção com outros escritórios ou até empresas de outros ramos. A única linha vermelha é o sigilo — não pode comprometer a confidencialidade das informações dos clientes."
+},
+{
+  num: 11,
+  exame: "",
+  titulo: "Vedações ao Registro da Sociedade",
+  enunciado: "Um grupo de advogados elabora o contrato social de uma sociedade, incluindo, entre os sócios, um contador que também prestaria serviços de consultoria tributária aos clientes do escritório.",
+  comando: "Considerando o art. 16 do EOAB, assinale a alternativa correta.",
+  gabarito: "C",
+  alternativas: {
+    A: "A sociedade poderá ser registrada normalmente, desde que o contador atue apenas em questões tributárias, sem prejuízo das causas exclusivamente jurídicas.",
+    B: "A sociedade poderá ser registrada, desde que o contador não tenha direito a voto nas deliberações sociais.",
+    C: "Não são admitidas a registro nem podem funcionar sociedades que incluam como sócio pessoa não inscrita como advogado ou totalmente proibida de advogar.",
+    D: "A inclusão de profissionais de outras áreas como sócios é permitida, desde que a maioria do capital social pertença a advogados."
+  },
+  feedbacks: {
+    A: "Incorreta. A lei veda de forma absoluta a inclusão de sócio não advogado — não existe hipótese de admissão parcial ou limitada.",
+    B: "Incorreta. Ainda que sem direito a voto, a mera inclusão de pessoa não inscrita como advogado já viola o art. 16.",
+    C: "Correta! O art. 16, caput, EOAB veda o registro e o funcionamento de sociedades que incluam, como sócio ou titular de sociedade unipessoal, pessoa não inscrita como advogado ou totalmente proibida de advogar — além de vedar forma empresária, denominação de fantasia e atividades estranhas à advocacia.",
+    D: "Incorreta. Não existe essa exceção por maioria de capital social pertencente a advogados — a vedação é categórica."
+  },
+  fundamento: "Art. 16, caput, EOAB.",
+  caqui: "A sociedade de advogados é um clube fechado: só entra quem é advogado regularmente inscrito (ou sociedade unipessoal do próprio titular). Não interessa se o profissional de outra área vai ter voto, quota pequena ou grande — a simples presença dele como sócio já contamina o registro. Se quiser um contador no time, que seja como prestador de serviço contratado, nunca como sócio."
+},
+{
+  num: 12,
+  exame: "",
+  titulo: "Razão Social — Nome de Sócio Falecido",
+  enunciado: "Uma sociedade de advogados foi fundada há 30 anos por três sócios, um dos quais faleceu há 10 anos. O contrato social sempre previu a possibilidade de manutenção do nome do sócio falecido na razão social.",
+  comando: "Considerando o EOAB, assinale a alternativa correta.",
+  gabarito: "B",
+  alternativas: {
+    A: "É vedado manter o nome de sócio falecido na razão social, ainda que previsto no ato constitutivo, pois a razão social deve refletir apenas os sócios em atividade.",
+    B: "A razão social deve ter, obrigatoriamente, o nome de pelo menos um advogado responsável pela sociedade, podendo permanecer o de sócio falecido, desde que prevista tal possibilidade no ato constitutivo.",
+    C: "A manutenção do nome do sócio falecido é automática, independentemente de qualquer previsão no ato constitutivo.",
+    D: "A razão social pode ser formada exclusivamente por nome de fantasia, desde que o nome do sócio falecido conste em documento anexo ao contrato social."
+  },
+  feedbacks: {
+    A: "Incorreta. A manutenção é permitida, desde que prevista no ato constitutivo — não é vedada.",
+    B: "Correta! O art. 16, §1º, EOAB exige que a razão social tenha ao menos o nome de um advogado responsável pela sociedade, admitindo a permanência do nome de sócio falecido se prevista essa possibilidade no ato constitutivo.",
+    C: "Incorreta. A manutenção não é automática — depende de previsão expressa no ato constitutivo.",
+    D: "Incorreta. Nome de fantasia é vedado pelo art. 16, caput, independentemente de qualquer documento anexo."
+  },
+  fundamento: "Art. 16, §1º, EOAB.",
+  caqui: "A razão social da sociedade de advogados é sempre feita de nomes de advogados — nunca de fantasia. E há uma homenagem possível: se o contrato social já previa isso, o nome do sócio falecido pode continuar ali, como legado do escritório. Mas essa previsão tem que estar escrita no ato constitutivo — não é regra automática."
+},
+{
+  num: 13,
+  exame: "",
+  titulo: "Impedimento Temporário do Sócio",
+  enunciado: "Um dos sócios de uma sociedade de advogados assume cargo público que gera incompatibilidade temporária com o exercício da advocacia.",
+  comando: "Considerando o EOAB, assinale a alternativa correta.",
+  gabarito: "A",
+  alternativas: {
+    A: "O impedimento ou a incompatibilidade em caráter temporário do advogado não o exclui da sociedade de advogados à qual pertença, devendo ser averbado no registro da sociedade.",
+    B: "O impedimento temporário obriga a imediata exclusão do sócio do quadro societário, com a consequente alteração do contrato social.",
+    C: "A incompatibilidade temporária suspende automaticamente o funcionamento de toda a sociedade, até que a situação do sócio se regularize.",
+    D: "O sócio impedido temporariamente deve transferir suas quotas a terceiro durante o período de impedimento, sob pena de dissolução da sociedade."
+  },
+  feedbacks: {
+    A: "Correta! O art. 16, §2º, EOAB estabelece que o impedimento ou incompatibilidade temporária não exclui o advogado da sociedade, devendo apenas ser averbado no registro social.",
+    B: "Incorreta. Não há exclusão automática — o sócio permanece na sociedade, apenas com a situação averbada.",
+    C: "Incorreta. A situação de um sócio impedido temporariamente não suspende o funcionamento da sociedade como um todo.",
+    D: "Incorreta. Não há exigência de transferência de quotas a terceiro nessa hipótese."
+  },
+  fundamento: "Art. 16, §2º, EOAB.",
+  caqui: "Impedimento ou incompatibilidade temporária é como um 'modo pausa' na atuação do sócio, não um desligamento. Ele continua sócio, a sociedade continua existindo normalmente — só é preciso registrar essa situação temporária no registro social, para constar formalmente."
+},
+{
+  num: 14,
+  exame: "",
+  titulo: "Denominação da Sociedade Unipessoal de Advocacia",
+  enunciado: "Um advogado, único titular de sua sociedade unipessoal de advocacia, pretende utilizar apenas seu prenome seguido da expressão 'Escritório Jurídico' na denominação da sociedade.",
+  comando: "Considerando o EOAB, assinale a alternativa correta.",
+  gabarito: "D",
+  alternativas: {
+    A: "A denominação proposta é válida, pois basta que conste qualquer referência ao nome do titular, ainda que parcial e sem exigência de expressão específica.",
+    B: "A denominação da sociedade unipessoal pode ser livremente escolhida pelo titular, à semelhança do que ocorre com empresários individuais em geral.",
+    C: "É vedado à sociedade unipessoal de advocacia utilizar prenome do titular, exigindo-se o nome completo, sem abreviações.",
+    D: "A denominação da sociedade unipessoal de advocacia deve ser obrigatoriamente formada pelo nome do seu titular, completo ou parcial, com a expressão 'Sociedade Individual de Advocacia'."
+  },
+  feedbacks: {
+    A: "Incorreta. Não basta qualquer referência ao nome — a lei exige especificamente a expressão 'Sociedade Individual de Advocacia', que a denominação proposta ('Escritório Jurídico') não contempla.",
+    B: "Incorreta. A denominação não é de livre escolha — segue regra própria e obrigatória do art. 16, §4º.",
+    C: "Incorreta. O nome pode ser completo ou parcial — a lei não exige necessariamente o nome completo, sem abreviação.",
+    D: "Correta! O art. 16, §4º, EOAB exige que a denominação da sociedade unipessoal seja formada pelo nome do titular, completo ou parcial, acrescida da expressão 'Sociedade Individual de Advocacia'."
+  },
+  fundamento: "Art. 16, §4º, EOAB.",
+  caqui: "A sociedade unipessoal tem uma 'etiqueta' obrigatória: nome do titular (completo ou parcial) + 'Sociedade Individual de Advocacia'. 'Escritório Jurídico' sozinho não cumpre essa exigência — falta tanto o nome do titular quanto a expressão específica que a lei exige."
+},
+{
+  num: 15,
+  exame: "",
+  titulo: "Responsabilidade dos Sócios por Danos a Clientes",
+  enunciado: "Um cliente sofreu prejuízo em razão de erro grave cometido por um dos sócios de uma sociedade de advogados no exercício da advocacia, no âmbito de causa patrocinada pela sociedade.",
+  comando: "Considerando o EOAB, assinale a alternativa correta.",
+  gabarito: "B",
+  alternativas: {
+    A: "Apenas a sociedade responde pelos danos causados ao cliente, estando o sócio individualmente isento de qualquer responsabilidade civil.",
+    B: "Além da sociedade, o sócio (e o titular da sociedade individual de advocacia) responde subsidiária e ilimitadamente pelos danos causados aos clientes por ação ou omissão no exercício da advocacia, sem prejuízo da responsabilidade disciplinar em que possa incorrer.",
+    C: "O sócio responde solidária e limitadamente ao valor de sua quota social, não podendo essa responsabilidade ultrapassar o capital social integralizado.",
+    D: "A responsabilidade do sócio é excluída caso a sociedade possua seguro de responsabilidade civil profissional vigente."
+  },
+  feedbacks: {
+    A: "Incorreta. O sócio também responde, além da sociedade — a responsabilidade não é exclusiva da pessoa jurídica.",
+    B: "Correta! O art. 17, EOAB prevê que, além da sociedade, o sócio (e o titular da sociedade individual) responde subsidiária e ilimitadamente pelos danos causados aos clientes, por ação ou omissão no exercício da advocacia, sem prejuízo da responsabilidade disciplinar.",
+    C: "Incorreta. A responsabilidade não é solidária nem limitada à quota social — é subsidiária (primeiro se cobra da sociedade) e ilimitada (não se restringe ao valor da quota).",
+    D: "Incorreta. A existência de seguro de responsabilidade civil não exclui, por si só, a responsabilidade pessoal do sócio prevista em lei."
+  },
+  fundamento: "Art. 17, EOAB.",
+  caqui: "Decore a fórmula: subsidiária (primeiro tenta-se cobrar da sociedade; faltando patrimônio dela, vai-se atrás do sócio) + ilimitada (não trava no valor da quota social — o patrimônio pessoal do sócio pode responder integralmente). E isso é só a esfera civil — a esfera disciplinar (processo ético perante a OAB) corre em paralelo, sem prejuízo dessa responsabilidade."
+},
+{
+  num: 16,
+  exame: "",
+  titulo: "Advogado Associado — Ausência de Vínculo Empregatício",
+  enunciado: "Larissa, advogada, celebra contrato com uma sociedade de advogados para prestar serviços e participar dos resultados obtidos, sem que estejam presentes os requisitos legais de vínculo empregatício.",
+  comando: "Considerando o EOAB, assinale a alternativa correta.",
+  gabarito: "C",
+  alternativas: {
+    A: "Essa forma de vinculação é vedada pelo EOAB, que somente admite a atuação do advogado como sócio ou como empregado da sociedade.",
+    B: "Larissa somente poderá associar-se a uma única sociedade de advogados ou sociedade unipessoal, sendo vedada a associação simultânea a mais de uma.",
+    C: "O advogado pode associar-se a uma ou mais sociedades de advogados ou sociedades unipessoais de advocacia, sem que estejam presentes os requisitos legais de vínculo empregatício, para prestação de serviços e participação nos resultados, na forma do Regulamento Geral e de Provimentos do Conselho Federal da OAB.",
+    D: "A associação de advogados a sociedades, para participação nos resultados, depende de prévia autorização judicial."
+  },
+  feedbacks: {
+    A: "Incorreta. O EOAB admite expressamente uma terceira forma de vinculação: a associação, distinta de sócio e de empregado.",
+    B: "Incorreta. O art. 17-A permite a associação a 'uma ou mais' sociedades — não há limitação a uma única.",
+    C: "Correta! O art. 17-A, EOAB prevê exatamente essa figura: associação a uma ou mais sociedades de advogados ou unipessoais, sem vínculo empregatício, para prestação de serviços e participação nos resultados.",
+    D: "Incorreta. Não há exigência de autorização judicial — a associação se formaliza por contrato próprio, registrado no Conselho Seccional."
+  },
+  fundamento: "Art. 17-A, EOAB.",
+  caqui: "Existe uma terceira via, além de sócio e empregado: o advogado associado. Ele não vira sócio (não entra no capital social) nem empregado (não há vínculo trabalhista) — ele presta serviços e ganha uma fatia dos resultados, por contrato próprio. E pode fazer isso com mais de uma sociedade ao mesmo tempo, diferente do sócio, que fica travado a uma só estrutura."
+},
+{
+  num: 17,
+  exame: "",
+  titulo: "Formalização do Contrato de Associação",
+  enunciado: "Uma sociedade de advogados pretende formalizar a associação de um advogado para atuação restrita a uma única causa específica, com participação nos resultados obtidos apenas naquele caso.",
+  comando: "Considerando o EOAB, assinale a alternativa correta.",
+  gabarito: "A",
+  alternativas: {
+    A: "A associação dar-se-á por meio de pactuação de contrato próprio, que poderá ser de caráter geral ou restringir-se a determinada causa ou trabalho, devendo ser registrado no Conselho Seccional da OAB em cuja base territorial tiver sede a sociedade de advogados.",
+    B: "A associação restrita a uma única causa é vedada, sendo exigido que todo contrato de associação tenha caráter geral e permanente.",
+    C: "O contrato de associação restrita a uma causa dispensa qualquer registro perante a OAB, por se tratar de ajuste de natureza estritamente privada.",
+    D: "O registro do contrato de associação deve ser feito no Conselho Seccional do domicílio do cliente beneficiado pela causa."
+  },
+  feedbacks: {
+    A: "Correta! O art. 17-B, EOAB prevê que a associação se dá por contrato próprio, de caráter geral ou restrito a determinada causa/trabalho, registrado no Conselho Seccional da sede da sociedade.",
+    B: "Incorreta. A lei admite expressamente a associação restrita a determinada causa ou trabalho, não exigindo caráter geral.",
+    C: "Incorreta. O contrato de associação deve ser registrado no Conselho Seccional da OAB — não é dispensado o registro.",
+    D: "Incorreta. O registro é no Conselho Seccional da base territorial da sede da sociedade de advogados, não no domicílio do cliente."
+  },
+  fundamento: "Art. 17-B, EOAB.",
+  caqui: "A associação é flexível na abrangência (pode ser um contrato guarda-chuva, geral, ou algo pontual, restrito a um único caso), mas é rígida na forma: sempre um contrato próprio, sempre registrado no Conselho Seccional onde a sociedade tem sede. Não existe associação informal ou sem registro."
+},
+{
+  num: 18,
+  exame: "",
+  titulo: "Sócio-Administrador em Sociedade com Filiais",
+  enunciado: "Uma sociedade de advogados com sede em uma capital e filial em outra cidade discute se o sócio-administrador precisa necessariamente atuar fisicamente na sede.",
+  comando: "Considerando o EOAB, assinale a alternativa correta.",
+  gabarito: "B",
+  alternativas: {
+    A: "O sócio-administrador deve, obrigatoriamente, atuar fisicamente na sede da sociedade, sendo vedada sua atuação em filial.",
+    B: "Nas sociedades de advogados, a escolha do sócio-administrador poderá recair sobre advogado que atue em base territorial diversa da sede, inclusive em filial.",
+    C: "A administração da sociedade deve ser necessariamente colegiada, sendo vedada a figura de um único sócio-administrador.",
+    D: "A escolha do sócio-administrador é sempre automática, recaindo sobre o sócio mais antigo da sociedade."
+  },
+  feedbacks: {
+    A: "Incorreta. A lei não exige que o sócio-administrador atue fisicamente na sede — admite-se que atue em outra base territorial.",
+    B: "Correta! O art. 15, §8º, EOAB permite que a escolha do sócio-administrador recaia sobre advogado que atue em base territorial diversa da sede da sociedade, inclusive em filial.",
+    C: "Incorreta. Não há exigência de administração colegiada — a lei admite a figura do sócio-administrador.",
+    D: "Incorreta. Não há critério automático de antiguidade — a escolha do sócio-administrador segue o que dispuser o contrato social."
+  },
+  fundamento: "Art. 15, §8º, EOAB.",
+  caqui: "A administração da sociedade não fica 'presa' geograficamente à sede — um sócio que atua na filial pode perfeitamente ser o administrador de toda a sociedade. A lei acompanha a lógica de que a gestão pode ser feita à distância, sem exigir presença física constante na sede."
+},
+{
+  num: 19,
+  exame: "",
+  titulo: "Distinção entre Sócio, Associado e Empregado",
+  enunciado: "Uma sociedade de advogados possui em seu quadro: (i) sócios que integram o capital social, (ii) um advogado associado por contrato de participação nos resultados sem vínculo empregatício, e (iii) advogados contratados sob regime de emprego (CLT).",
+  comando: "Considerando o EOAB, assinale a alternativa correta.",
+  gabarito: "D",
+  alternativas: {
+    A: "As três formas de vinculação são juridicamente idênticas, apenas com nomenclaturas diferentes, sem qualquer distinção de regime aplicável.",
+    B: "O advogado empregado da sociedade não pode, em hipótese alguma, receber honorários de sucumbência, ainda que atue diretamente na causa.",
+    C: "Apenas os sócios podem legitimamente atuar em nome da sociedade perante clientes; associados e empregados atuam sempre em nome próprio.",
+    D: "Sócio, associado e empregado são figuras distintas no âmbito da sociedade de advogados: o sócio integra o capital social e responde nos termos do art. 17; o associado presta serviços e participa dos resultados sem vínculo empregatício, por contrato próprio (arts. 17-A e 17-B); e o empregado vincula-se por relação trabalhista disciplinada em lei específica."
+  },
+  feedbacks: {
+    A: "Incorreta. As três figuras têm regimes jurídicos distintos — capital social e responsabilidade (sócio), contrato de associação sem vínculo (associado) e relação de emprego (empregado).",
+    B: "Incorreta. A legislação trabalhista específica disciplina a partilha de honorários de sucumbência entre advogado empregado e empregador, não havendo vedação absoluta.",
+    C: "Incorreta. Associados e empregados também podem atuar representando a sociedade perante clientes, conforme a organização interna e os contratos firmados.",
+    D: "Correta! Cada figura tem regime próprio: sócio (capital social e responsabilidade do art. 17), associado (arts. 17-A e 17-B, sem vínculo empregatício, por contrato) e empregado (vínculo trabalhista específico)."
+  },
+  fundamento: "Arts. 17, 17-A e 17-B, EOAB.",
+  caqui: "Três formas, três lógicas: o sócio é 'dono' de uma fatia da sociedade e responde patrimonialmente por ela; o associado é um parceiro contratual, sem vínculo de emprego, que ganha parte dos resultados; o empregado tem carteira assinada, vínculo trabalhista típico. A banca adora testar se você confunde essas três categorias entre si."
+},
+{
+  num: 20,
+  exame: "",
+  titulo: "Vedação de Atividades Estranhas à Advocacia",
+  enunciado: "Uma sociedade de advogados pretende incluir em seu objeto social, além da prestação de serviços jurídicos, a intermediação de negócios imobiliários para seus clientes, mediante comissão.",
+  comando: "Considerando o EOAB, assinale a alternativa correta.",
+  gabarito: "C",
+  alternativas: {
+    A: "É permitida a ampliação do objeto social, desde que a atividade imobiliária seja exercida por sócio distinto daquele responsável pelas causas jurídicas.",
+    B: "É permitida a ampliação do objeto social, desde que a receita da intermediação imobiliária seja contabilizada separadamente da receita advocatícia.",
+    C: "Não são admitidas a registro nem podem funcionar sociedades de advogados que realizem atividades estranhas à advocacia.",
+    D: "A ampliação do objeto social para incluir atividades estranhas à advocacia depende apenas de aprovação da maioria dos sócios em assembleia."
+  },
+  feedbacks: {
+    A: "Incorreta. A vedação atinge a sociedade como um todo, independentemente de qual sócio exerceria a atividade estranha.",
+    B: "Incorreta. A separação contábil não afasta a vedação legal — a sociedade de advogados não pode ter atividade estranha à advocacia em seu objeto social, ponto.",
+    C: "Correta! O art. 16, caput, EOAB veda o registro e o funcionamento de sociedades que realizem atividades estranhas à advocacia.",
+    D: "Incorreta. Não há essa possibilidade de flexibilização por deliberação interna dos sócios — a vedação é legal e não comporta essa exceção."
+  },
+  fundamento: "Art. 16, caput, EOAB.",
+  caqui: "O objeto social da sociedade de advogados é só um: advocacia. Intermediação imobiliária, consultoria financeira, corretagem — nada disso pode entrar no objeto social do escritório, ainda que os sócios queiram diversificar e mesmo com toda separação contábil possível. Quem quiser fazer isso, precisa criar uma pessoa jurídica totalmente separada, sem relação formal com a sociedade de advogados."
+},
+{
+  num: 21,
+  exame: "",
+  titulo: "Panorama: Diferenças entre Sociedade e Sociedade Unipessoal",
+  enunciado: "Um advogado recém-aprovado pergunta ao seu mentor quais são as principais diferenças entre a sociedade simples de advogados e a sociedade unipessoal de advocacia.",
+  comando: "Assinale a alternativa que descreve corretamente uma diferença real entre as duas modalidades.",
+  gabarito: "B",
+  alternativas: {
+    A: "A sociedade unipessoal não adquire personalidade jurídica, ao contrário da sociedade simples de advogados.",
+    B: "A denominação da sociedade unipessoal deve conter o nome do titular (completo ou parcial) com a expressão 'Sociedade Individual de Advocacia', enquanto a sociedade simples pode adotar razão social com o nome de um ou mais advogados responsáveis.",
+    C: "Apenas a sociedade simples de advogados está sujeita ao Código de Ética e Disciplina; a sociedade unipessoal está dispensada dessa sujeição.",
+    D: "Somente a sociedade simples de advogados pode ter filiais; a sociedade unipessoal é necessariamente restrita a uma única base territorial."
+  },
+  feedbacks: {
+    A: "Incorreta. Ambas adquirem personalidade jurídica com o registro no Conselho Seccional (art. 15, §1º).",
+    B: "Correta! Essa é justamente a diferença de nomenclatura prevista nos §§1º e 4º do art. 16: a sociedade unipessoal tem denominação específica e obrigatória (nome do titular + 'Sociedade Individual de Advocacia'), enquanto a sociedade simples de advogados adota razão social com nome de sócio(s) responsável(is).",
+    C: "Incorreta. O Código de Ética se aplica a ambas, no que couber (art. 15, §2º).",
+    D: "Incorreta. Nada impede que a sociedade unipessoal também tenha filiais, seguindo a mesma regra de averbação e inscrição suplementar."
+  },
+  fundamento: "Art. 15, §§1º, 2º e 5º; art. 16, §§1º e 4º, EOAB.",
+  caqui: "As duas modalidades compartilham a maior parte do regime jurídico — personalidade via registro na OAB, aplicação do Código de Ética, possibilidade de filiais. A diferença mais marcante e mais cobrada em prova é justamente a denominação: sociedade simples usa nome de sócio(s) responsável(is); a unipessoal exige nome do titular + a expressão 'Sociedade Individual de Advocacia'."
+},
+{
+  num: 22,
+  exame: "",
+  titulo: "Sociedade de Advogados e Forma de Sociedade Empresária",
+  enunciado: "Os sócios de uma sociedade de advogados deliberam alterar o contrato social para adotar características típicas de sociedade empresária, com vistas a facilitar a captação de investimentos externos.",
+  comando: "Considerando o EOAB, assinale a alternativa correta.",
+  gabarito: "A",
+  alternativas: {
+    A: "A alteração pretendida é vedada: não são admitidas a registro nem podem funcionar sociedades de advogados que apresentem forma ou características de sociedade empresária.",
+    B: "A alteração é permitida, desde que aprovada pela unanimidade dos sócios em assembleia especialmente convocada para esse fim.",
+    C: "A alteração é permitida, desde que a sociedade mantenha seu registro originário no Conselho Seccional, ainda que adote características empresariais.",
+    D: "A alteração é permitida apenas para sociedades com mais de dez sócios, por força de norma específica do Conselho Federal da OAB."
+  },
+  feedbacks: {
+    A: "Correta! O art. 16, caput, EOAB veda de forma absoluta que a sociedade de advogados apresente forma ou características de sociedade empresária — não há exceção por unanimidade, tamanho ou manutenção do registro na OAB.",
+    B: "Incorreta. Nem mesmo a unanimidade dos sócios pode afastar essa vedação legal.",
+    C: "Incorreta. Manter o registro na OAB não convalida a adoção de características empresariais, que permanecem vedadas.",
+    D: "Incorreta. Não existe essa exceção por quantidade de sócios."
+  },
+  fundamento: "Art. 16, caput, EOAB.",
+  caqui: "A vedação à forma empresarial é categórica — não existe 'jeitinho' via deliberação unânime, manutenção formal do registro na OAB, ou quantidade de sócios que autorize a sociedade de advogados a se comportar como uma sociedade empresária. A advocacia, por sua natureza, é atividade intelectual, não mercantil — e a lei protege essa distinção com força total."
+},
+{
+  num: 23,
+  exame: "",
+  titulo: "Sociedade de Advogados — Interesses Opostos e Ética",
+  enunciado: "Paula e Ricardo são sócios da mesma sociedade de advogados. Um cliente de Paula pretende contratar Ricardo para representá-lo em uma ação judicial movida contra o próprio cliente de Paula, em processo distinto, mas relacionado ao mesmo contrato comercial.",
+  comando: "Considerando o EOAB, assinale a alternativa correta.",
+  gabarito: "B",
+  alternativas: {
+    A: "A vedação de representar clientes com interesses opostos só existe quando os processos são idênticos, sendo irrelevante a relação entre demandas distintas oriundas do mesmo contrato.",
+    B: "A vedação de representar clientes com interesses opostos abrange a atuação de sócios da mesma sociedade profissional de forma ampla, cabendo, no caso, avaliar concretamente se há efetivo conflito de interesses entre os clientes de Paula e o pretendido cliente de Ricardo.",
+    C: "A vedação não se aplica nesse caso, pois Paula e Ricardo atuariam em processos distintos, ainda que derivados do mesmo contrato.",
+    D: "A vedação é afastada automaticamente se os honorários de ambos os processos forem recolhidos em contas bancárias separadas."
+  },
+  feedbacks: {
+    A: "Incorreta. A vedação do art. 15, §6º, não se limita à identidade processual — abrange clientes de interesses opostos de forma geral, cabendo análise do conflito material de interesses.",
+    B: "Correta! A vedação do art. 15, §6º, EOAB abrange sócios da mesma sociedade que representem clientes de interesses opostos, o que exige análise concreta da situação apresentada, e não apenas da identidade formal dos processos.",
+    C: "Incorreta. Processos distintos originados do mesmo conflito de interesse entre as mesmas partes ainda podem configurar a vedação legal, a depender da análise do caso concreto.",
+    D: "Incorreta. A separação de contas bancárias não tem qualquer relevância para afastar a vedação legal."
+  },
+  fundamento: "Art. 15, §6º, EOAB.",
+  caqui: "A vedação não é uma questão de rótulo processual (mesmo processo ou processos diferentes) — é uma questão de substância: há conflito real de interesses entre os clientes? Se Paula e Ricardo, sócios da mesma sociedade, forem colocados em lados opostos de uma mesma disputa de fundo, ainda que em ações formalmente distintas, o problema ético permanece."
+},
+{
+  num: 24,
+  exame: "",
+  titulo: "Aplicação Subsidiária das Normas de Sociedade Simples",
+  enunciado: "Determinado ponto omisso no ato constitutivo de uma sociedade unipessoal de advocacia gera dúvida sobre qual regime normativo deve ser aplicado subsidiariamente.",
+  comando: "Considerando o EOAB e a disciplina da sociedade unipessoal de advocacia, assinale a alternativa correta.",
+  gabarito: "C",
+  alternativas: {
+    A: "Aplicam-se subsidiariamente as normas da sociedade anônima, por ser o regime mais protetivo ao patrimônio do titular.",
+    B: "Não há aplicação subsidiária de qualquer regime, devendo eventuais lacunas ser decididas exclusivamente pelo Conselho Federal da OAB, caso a caso.",
+    C: "Aplicam-se, no que couber, as disposições do EOAB relativas à sociedade de advogados e ao Código de Ética e Disciplina, dada a remissão expressa da lei à disciplina conjunta das duas figuras.",
+    D: "Aplicam-se subsidiariamente as normas do empresário individual, por analogia com a figura anteriormente prevista para a EIRELI."
+  },
+  feedbacks: {
+    A: "Incorreta. Não há remissão às normas de sociedade anônima para a sociedade unipessoal de advocacia.",
+    B: "Incorreta. Não há exigência de decisão casuística do Conselho Federal para lacunas normativas — a lei já disciplina a matéria de forma conjunta.",
+    C: "Correta! O próprio EOAB disciplina a sociedade de advogados e a sociedade unipessoal de advocacia de forma conjunta ao longo dos arts. 15 e 16 (personalidade jurídica, Código de Ética, procurações, vedações de registro, entre outros), com remissão expressa às mesmas regras, no que couber.",
+    D: "Incorreta. A sociedade unipessoal de advocacia é figura própria do EOAB, distinta da EIRELI (que sequer mais existe no ordenamento) e do empresário individual, não havendo essa aplicação subsidiária."
+  },
+  fundamento: "Arts. 15 e 16, EOAB.",
+  caqui: "Repare como a lei já resolve isso 'por dentro': ao longo de todo o Capítulo IV do EOAB, sempre que trata da sociedade de advogados, o legislador também menciona a sociedade unipessoal, aplicando as mesmas regras (personalidade jurídica, Código de Ética, vedações de registro). Não é necessário buscar empréstimo em outro regime societário do Código Civil ou da Lei das S.A."
+},
+{
+  num: 25,
+  exame: "42º Exame de Ordem Unificado — 2024 (adaptada)",
+  titulo: "Associação de Advogado para Participação em Honorários",
+  enunciado: "Os sócios de uma sociedade de advogados pretendem associar Felipe, advogado recém-aprovado, à sociedade, para que ele atue em determinadas causas e participe dos resultados obtidos, sem que se configure vínculo empregatício entre as partes.",
+  comando: "Considerando o Regulamento Geral do Estatuto da Advocacia e da OAB, assinale a alternativa correta.",
+  gabarito: "A",
+  alternativas: {
+    A: "É permitida a associação de advogados à sociedade para participação nos resultados, sem gerar vínculo empregatício, desde que formalizada em contrato averbado no registro da sociedade.",
+    B: "A associação sem vínculo empregatício é vedada, sendo exigido que Felipe seja necessariamente admitido como sócio ou como empregado da sociedade.",
+    C: "A associação só é válida se Felipe já for sócio de outra sociedade de advogados havia, no mínimo, 2 anos.",
+    D: "A associação sem vínculo empregatício dispensa qualquer formalização escrita, bastando o ajuste verbal entre as partes."
+  },
+  feedbacks: {
+    A: "Correta! O Regulamento Geral do EOAB (art. 39, caput e parágrafo único) permite a associação de advogados à sociedade para participação nos resultados, sem vínculo empregatício, formalizada em contrato averbado no registro da sociedade — em linha com os arts. 17-A e 17-B do próprio Estatuto.",
+    B: "Incorreta. A figura do associado é expressamente admitida como uma terceira via, distinta de sócio e de empregado.",
+    C: "Incorreta. Não há exigência de que o associado já tenha sido sócio de outra sociedade por qualquer prazo mínimo.",
+    D: "Incorreta. A associação exige formalização em contrato próprio, averbado no registro da sociedade — não se admite ajuste meramente verbal."
+  },
+  fundamento: "Art. 39, caput e parágrafo único, RGEAOAB; arts. 17-A e 17-B, EOAB.",
+  caqui: "Essa é a mesma lógica do associado que vimos antes, só que na letra do Regulamento Geral: contrato escrito, averbado no registro da sociedade, sem gerar vínculo empregatício. Felipe pode entrar assim, sem precisar virar sócio nem empregado — e sem precisar de qualquer 'tempo de casa' prévio em outra sociedade."
+},
+{
+  num: 26,
+  exame: "",
+  titulo: "Panorama Geral — Sociedade de Advogados",
+  enunciado: "Um candidato ao Exame de Ordem revisa, na véspera da prova, os principais pontos do capítulo do EOAB sobre sociedade de advogados.",
+  comando: "Assinale a alternativa que resume corretamente o regime da sociedade de advogados no EOAB.",
+  gabarito: "D",
+  alternativas: {
+    A: "A sociedade de advogados é sociedade empresária, registrada na Junta Comercial, podendo adotar nome de fantasia e incluir sócios de outras profissões, desde que minoritários.",
+    B: "A sociedade de advogados é sociedade simples ou unipessoal, mas os sócios nunca respondem pessoalmente por danos causados a clientes, respondendo apenas a pessoa jurídica.",
+    C: "A sociedade de advogados admite qualquer forma societária, inclusive anônima, desde que a maioria das ações pertença a advogados regularmente inscritos.",
+    D: "A sociedade de advogados é sociedade simples (ou unipessoal), registrada no Conselho Seccional da OAB da sede, com razão social composta por nome de advogado(s) responsável(is) — vedados nome de fantasia, forma empresária e sócio não advogado —, e cujos sócios respondem subsidiária e ilimitadamente pelos danos causados a clientes no exercício da advocacia."
+  },
+  feedbacks: {
+    A: "Incorreta. Não é sociedade empresária, não se registra na Junta Comercial, não admite nome de fantasia nem sócio de outra profissão, ainda que minoritário.",
+    B: "Incorreta. Os sócios respondem sim, pessoalmente, de forma subsidiária e ilimitada (art. 17, EOAB) — a responsabilidade não fica restrita à pessoa jurídica.",
+    C: "Incorreta. A forma anônima (ou qualquer forma empresária) é vedada, independentemente da composição acionária.",
+    D: "Correta! Resume corretamente o regime: sociedade simples/unipessoal, registro no Conselho Seccional da sede, razão social com nome de advogado(s) responsável(is), vedações do art. 16 (fantasia, forma empresária, sócio não advogado) e responsabilidade subsidiária e ilimitada dos sócios pelo art. 17."
+  },
+  fundamento: "Arts. 15, 16 e 17, EOAB.",
+  caqui: "Fechando com o panorama completo: sociedade SIMPLES (nunca empresária), registro na OAB (nunca na Junta Comercial), nome sempre de advogado (nunca fantasia), só advogado como sócio (nunca outra profissão), e responsabilidade do sócio SUBSIDIÁRIA e ILIMITADA por danos a clientes. Esse é o esqueleto que resolve praticamente qualquer questão sobre o tema."
+}
+];
+
+let current = 0;
+const estado = Array(QUESTOES.length).fill(null);
+
+function init() {
+  const nav = document.getElementById('nav-wrap');
+  const container = document.getElementById('questions-container');
+
+  QUESTOES.forEach((q, i) => {
+    const nb = document.createElement('button');
+    nb.className = 'nav-btn' + (i === 0 ? ' active' : '');
+    nb.textContent = i + 1;
+    nb.onclick = () => goTo(i);
+    nb.id = 'nav-' + i;
+    nav.appendChild(nb);
+
+    const card = document.createElement('div');
+    card.className = 'q-card' + (i === 0 ? ' visible' : '');
+    card.id = 'card-' + i;
+    card.innerHTML = buildCard(q, i);
+    container.appendChild(card);
+  });
+
+  updatePagination();
+  updateScore();
+}
+
+function buildCard(q, i) {
+  const alts = Object.entries(q.alternativas).map(([letra, texto]) =>
+    `<button class="alt-btn" onclick="responder(${i}, '${letra}', this)" data-letra="${letra}">
+      <span class="alt-letter">${letra}</span>
+      <span class="alt-text">${texto}</span>
+    </button>`
+  ).join('');
+
+  return `
+    <div class="q-header">
+      <span class="q-num">Questão ${q.num}</span>
+      ${q.exame ? `<span class="q-exame">${q.exame}</span>` : ''}
+    </div>
+    <h2 class="q-titulo">${q.titulo}</h2>
+    <div class="enunciado">${q.enunciado}</div>
+    <p class="comando">${q.comando}</p>
+    <div class="alternativas" id="alts-${i}">${alts}</div>
+    <div class="feedback" id="fb-${i}"></div>
+    <div class="fundamento-box" id="fund-${i}">
+      <h4>📖 Fundamento legal</h4>
+      ${q.fundamento}
+    </div>
+    <div class="caqui-box" id="caqui-${i}">
+      <h4>🍊 Explicação didática do Professor Caqui</h4>
+      ${q.caqui}
+    </div>
+    <div class="card-actions">
+      <div class="btn-group">
+        <button class="btn purple" id="btn-fund-${i}" onclick="toggleFund(${i})">Ver fundamento legal</button>
+        <button class="btn caqui" id="btn-caqui-${i}" onclick="toggleCaqui(${i})">Explicação do Prof. Caqui</button>
+        <button class="btn" id="btn-reset-${i}" onclick="resetQ(${i})">↺ Tentar novamente</button>
+      </div>
+      <span class="status-text" id="status-${i}"></span>
+    </div>
+  `;
+}
+
+function responder(idx, letra, btn) {
+  if (estado[idx] !== null) return;
+  estado[idx] = letra;
+
+  const q = QUESTOES[idx];
+  const alts = document.querySelectorAll(`#alts-${idx} .alt-btn`);
+  alts.forEach(b => {
+    b.disabled = true;
+    if (b.dataset.letra === q.gabarito) b.classList.add('correct');
+    if (b.dataset.letra === letra && letra !== q.gabarito) b.classList.add('wrong');
+  });
+
+  const acertou = letra === q.gabarito;
+  const fb = document.getElementById('fb-' + idx);
+  fb.className = 'feedback show ' + (acertou ? 'acerto' : 'erro');
+  fb.innerHTML = `<strong>${acertou ? '✓ Correta!' : '✗ Incorreta.'}</strong> ${q.feedbacks[letra]}`;
+
+  document.getElementById('status-' + idx).textContent = acertou ? 'Acerto!' : 'Gabarito: ' + q.gabarito;
+  document.getElementById('btn-reset-' + idx).className = 'btn show';
+  document.getElementById('btn-fund-' + idx).className = 'btn purple show';
+  document.getElementById('btn-caqui-' + idx).className = 'btn caqui show';
+
+  const navBtn = document.getElementById('nav-' + idx);
+  navBtn.classList.remove('active');
+  navBtn.classList.add(acertou ? 'correto' : 'errado');
+  if (idx === current) navBtn.classList.add('active');
+
+  updateScore();
+}
+
+function toggleFund(idx) {
+  const box = document.getElementById('fund-' + idx);
+  const btn = document.getElementById('btn-fund-' + idx);
+  const visible = box.classList.contains('show');
+  box.className = visible ? 'fundamento-box' : 'fundamento-box show';
+  btn.textContent = visible ? 'Ver fundamento legal' : 'Ocultar fundamento';
+}
+
+function toggleCaqui(idx) {
+  const box = document.getElementById('caqui-' + idx);
+  const btn = document.getElementById('btn-caqui-' + idx);
+  const visible = box.classList.contains('show');
+  box.className = visible ? 'caqui-box' : 'caqui-box show';
+  btn.textContent = visible ? 'Explicação do Prof. Caqui' : 'Ocultar explicação';
+}
+
+function resetQ(idx) {
+  estado[idx] = null;
+  const alts = document.querySelectorAll(`#alts-${idx} .alt-btn`);
+  alts.forEach(b => { b.disabled = false; b.className = 'alt-btn'; });
+  document.getElementById('fb-' + idx).className = 'feedback';
+  document.getElementById('fund-' + idx).className = 'fundamento-box';
+  document.getElementById('btn-fund-' + idx).className = 'btn purple';
+  document.getElementById('btn-fund-' + idx).textContent = 'Ver fundamento legal';
+  document.getElementById('caqui-' + idx).className = 'caqui-box';
+  document.getElementById('btn-caqui-' + idx).className = 'btn caqui';
+  document.getElementById('btn-caqui-' + idx).textContent = 'Explicação do Prof. Caqui';
+  document.getElementById('btn-reset-' + idx).className = 'btn';
+  document.getElementById('status-' + idx).textContent = '';
+
+  const navBtn = document.getElementById('nav-' + idx);
+  navBtn.className = 'nav-btn' + (idx === current ? ' active' : '');
+
+  updateScore();
+}
+
+function goTo(idx) {
+  document.getElementById('card-' + current).classList.remove('visible');
+  document.getElementById('nav-' + current).classList.remove('active');
+  current = idx;
+  document.getElementById('card-' + current).classList.add('visible');
+  const navBtn = document.getElementById('nav-' + current);
+  navBtn.classList.add('active');
+  updatePagination();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function navPage(dir) {
+  const next = current + dir;
+  if (next >= 0 && next < QUESTOES.length) goTo(next);
+}
+
+function updatePagination() {
+  document.getElementById('pg-info').textContent = (current + 1) + ' de ' + QUESTOES.length;
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current === QUESTOES.length - 1;
+}
+
+function updateScore() {
+  const respondidas = estado.filter(e => e !== null).length;
+  const acertos = estado.filter((e, i) => e === QUESTOES[i].gabarito).length;
+  const erros = respondidas - acertos;
+  document.getElementById('sc-total').textContent = respondidas;
+  document.getElementById('sc-acertos').textContent = acertos;
+  document.getElementById('sc-erros').textContent = erros;
+  const pct = Math.round((respondidas / QUESTOES.length) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = respondidas + ' de ' + QUESTOES.length + ' respondidas';
+}
+
+init();
+</script>
+</body>
+</html>
